@@ -4,8 +4,8 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const Port = require('../node_modules/nodes5').S5PLC
-const nodes5 = require('../node_modules/nodes5');
+const Port = require('@protocols/nodes5').S5PLC
+const nodes5 = require('@protocols/nodes5');
 
 function nrInputShim(node, fn) {
     node.on('input', function (msg, send, done) {
