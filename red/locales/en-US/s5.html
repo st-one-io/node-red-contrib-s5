@@ -1,0 +1,405 @@
+<script type="text/html" data-help-name="s5 plc">
+    <p>Configures the connection to a PLC</p>
+	<p>This node was created as part of the <a href="https://st-one.io" target="_blank">ST-One</a> project</p>
+
+	<h3>Details</h3>
+	<p>
+		The <b>Cycle time</b> configuration specifies the time interval in which
+		all variables will be read from the PLC. A value of <code>0</code> disables
+		automatic reading, and then a manual triggering is required from the 
+		<i>s5 control</i> node
+	</p>
+	<p>
+		The <b>Timeout</b> parameter sets the maximum amount of time that the PLC
+		may take to answer our requests. It may be desirable to raise this time if
+		the network is busy of it's latency is high
+	</p>
+	<p>
+		It's possible to log the PLC communication by setting the <b>Debug</b> option
+		to "On" of "Off". By default, the behavior is controlled by the <code>-v</code>
+		command-line parameter when running Node-RED
+	</p>
+	<ul>
+		<li>
+			<b>Address</b>: specifies the address on the bus of the PLC 
+			that we will communicate to.
+		</li>
+	</ul>
+	
+    <!-- TODO: verify processor from S5 -->
+	<h3>Notes on S5-U115</h3>
+	<p>
+		Some extra configuration may be needed on the S5 series
+		of PLCS in order to access their data:
+		<ul>
+			<li>
+				"Optimized block access" must be disabled for the DBs we want 
+				to access
+			</li>
+			<li>
+				In the "Protection" section of the CPU Properties, enable the 
+				"Permit access with PUT/GET" checkbox
+			</li>
+		</ul>
+	</p>
+
+	<h3>Variable addressing</h3>
+	<p>
+		The variables and their addresses configured on the <strong>S5 Endpoint</strong> 
+		follow a slightly different scheme than used on Step 5.
+		Here are some examples that may guide you on addressing your variables:
+	</p>
+	<style>
+		table {
+		padding: 0; }
+		table tr {
+			border-top: 1px solid #cccccc;
+			background-color: white;
+			margin: 0;
+			padding: 0; }
+			table tr:nth-child(2n) {
+			background-color: #f8f8f8; }
+			table tr th {
+			font-weight: bold;
+			border: 1px solid #cccccc;
+			text-align: left;
+			margin: 0;
+			padding: 6px 13px; }
+			table tr td {
+			border: 1px solid #cccccc;
+			text-align: left;
+			margin: 0;
+			padding: 6px 13px; }
+			table tr th :first-child, table tr td :first-child {
+			margin-top: 0; }
+			table tr th :last-child, table tr td :last-child {
+			margin-bottom: 0; }
+	</style>
+	<table>
+		<thead>
+			<tr>
+				<th>Address</th>
+				<th>Step5 equivalent</th>
+				<th>JS Data type</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>DB5,X0.1</code></td>
+				<td><code>DB5.DBX0.1</code></td>
+				<td>Boolean</td>
+				<td>Bit 1 of byte 0 of DB 5</td>
+			</tr>
+			<tr>
+				<td><code>DB23,B1</code> or <code>DB23,BYTE1</code></td>
+				<td><code>DB23.DBB1</code></td>
+				<td>Number</td>
+				<td>Byte 1 (0-255) of DB 23</td>
+			</tr>
+			<tr>
+				<td><code>DB100,C2</code> or <code>DB100,CHAR2</code></td>
+				<td><code>DB100.DBB2</code></td>
+				<td>String</td>
+				<td>Byte 2 of DB 100 as a Char</td>
+			</tr>
+			<tr>
+				<td><code>DB42,I3</code> or <code>DB42,INT3</code></td>
+				<td><code>DB42.DBW3</code></td>
+				<td>Number</td>
+				<td>Signed 16-bit number at byte 3 of DB 42</td>
+			</tr>
+			<tr>
+				<td><code>DB57,WORD4</code></td>
+				<td><code>DB57.DBW4</code></td>
+				<td>Number</td>
+				<td>Unsigned 16-bit number at byte 4 of DB 57</td>
+			</tr>
+			<tr>
+				<td><code>DX13,DI5</code> or <code>DX13,DINT5</code></td>
+				<td><code>DX13,DBD5</code></td>
+				<td>Number</td>
+				<td>Signed 32-bit number at byte 5 of DB 13</td>
+			</tr>
+			<tr>
+				<td><code>DB19,DW6</code> or <code>DB19,DWORD6</code></td>
+				<td><code>DB19.DBD6</code></td>
+				<td>Number</td>
+				<td>Unsigned 32-bit number at byte 6 of DB 19</td>
+			</tr>
+			<tr>
+				<td><code>DB21,R7</code> or <code>DB21,REAL7</code></td>
+				<td><code>DB19.DBD7</code></td>
+				<td>Number</td>
+				<td>Floating point 32-bit number at byte 7 of DB 21</td>
+			</tr>
+			<tr>
+				<td><code>DB2,S7.10</code>*</td>
+				<td>-</td>
+				<td>String</td>
+				<td>String of length 10 starting at byte 7 of DB 2</td>
+			</tr>
+			<tr>
+				<td><code>I1.0</code> or <code>E1.0</code></td>
+				<td><code>I1.0</code> or <code>E1.0</code></td>
+				<td>Boolean</td>
+				<td>Bit 0 of byte 1 of input area</td>
+			</tr>
+			<tr>
+				<td><code>Q2.1</code> or <code>A2.1</code></td>
+				<td><code>Q2.1</code> or <code>A2.1</code></td>
+				<td>Boolean</td>
+				<td>Bit 1 of byte 2 of output area</td>
+			</tr>
+			<tr>
+				<td><code>F3.2</code></td>
+				<td><code>QM3.2</code></td>
+				<td>Boolean</td>
+				<td>Bit 2 of byte 3 of memory area</td>
+			</tr>
+			<tr>
+				<td><code>IB4</code> or <code>EB4</code></td>
+				<td><code>IB4</code> or <code>EB4</code></td>
+				<td>Number</td>
+				<td>Byte 4 (0 -255) of input area</td>
+			</tr>
+			<tr>
+				<td><code>QB5</code> or <code>AB5</code></td>
+				<td><code>QB5</code> or <code>AB5</code></td>
+				<td>Number</td>
+				<td>Byte 5 (0 -255) of output area</td>
+			</tr>
+			<tr>
+				<td><code>FB6</code></td>
+				<td><code>FB6</code></td>
+				<td>Number</td>
+				<td>Byte 6 (0 -255) of memory area</td>
+			</tr>
+			<tr>
+				<td><code>IC7</code> or <code>EC7</code></td>
+				<td><code>IB7</code> or <code>EB7</code></td>
+				<td>String</td>
+				<td>Byte 7 of input area as a Char</td>
+			</tr>
+			<tr>
+				<td><code>QC8</code> or <code>AC8</code></td>
+				<td><code>QB8</code> or <code>AB8</code></td>
+				<td>String</td>
+				<td>Byte 8 of output area as a Char</td>
+			</tr>
+			<tr>
+				<td><code>FC9</code></td>
+				<td><code>FB9</code></td>
+				<td>String</td>
+				<td>Byte 9 of memory area as a Char</td>
+			</tr>
+			<tr>
+				<td><code>II10</code> or <code>EI10</code></td>
+				<td><code>IW10</code> or <code>EW10</code></td>
+				<td>Number</td>
+				<td>Signed 16-bit number at byte 10 of input area</td>
+			</tr>
+			<tr>
+				<td><code>QI12</code> or <code>AI12</code></td>
+				<td><code>QW12</code> or <code>AW12</code></td>
+				<td>Number</td>
+				<td>Signed 16-bit number at byte 12 of output area</td>
+			</tr>
+			<tr>
+				<td><code>FI14</code></td>
+				<td><code>FW14</code></td>
+				<td>Number</td>
+				<td>Signed 16-bit number at byte 14 of memory area</td>
+			</tr>
+			<tr>
+				<td><code>IW16</code> or <code>EW16</code></td>
+				<td><code>IW16</code> or <code>EW16</code></td>
+				<td>Number</td>
+				<td>Unsigned 16-bit number at byte 16 of input area</td>
+			</tr>
+			<tr>
+				<td><code>QW18</code> or <code>AW18</code></td>
+				<td><code>QW18</code> or <code>AW18</code></td>
+				<td>Number</td>
+				<td>Unsigned 16-bit number at byte 18 of output area</td>
+			</tr>
+			<tr>
+				<td><code>FW20</code></td>
+				<td><code>FW20</code></td>
+				<td>Number</td>
+				<td>Unsigned 16-bit number at byte 20 of memory area</td>
+			</tr>
+			<tr>
+				<td><code>IDI22</code> or <code>EDI22</code></td>
+				<td><code>ID22</code> or <code>ED22</code></td>
+				<td>Number</td>
+				<td>Signed 32-bit number at byte 22 of input area</td>
+			</tr>
+			<tr>
+				<td><code>QDI24</code> or <code>ADI24</code></td>
+				<td><code>QD24</code> or <code>AD24</code></td>
+				<td>Number</td>
+				<td>Signed 32-bit number at byte 24 of output area</td>
+			</tr>
+			<tr>
+				<td><code>FDI26</code></td>
+				<td><code>FD26</code></td>
+				<td>Number</td>
+				<td>Signed 32-bit number at byte 26 of memory area</td>
+			</tr>
+			<tr>
+				<td><code>ID28</code> or <code>ED28</code></td>
+				<td><code>ID28</code> or <code>ED28</code></td>
+				<td>Number</td>
+				<td>Unsigned 32-bit number at byte 28 of input area</td>
+			</tr>
+			<tr>
+				<td><code>QD30</code> or <code>AD30</code></td>
+				<td><code>QD30</code> or <code>AD30</code></td>
+				<td>Number</td>
+				<td>Unsigned 32-bit number at byte 30 of output area</td>
+			</tr>
+			<tr>
+				<td><code>FD32</code></td>
+				<td><code>FD32</code></td>
+				<td>Number</td>
+				<td>Unsigned 32-bit number at byte 32 of memory area</td>
+			</tr>
+			<tr>
+				<td><code>IR34</code> or <code>ER34</code></td>
+				<td><code>IR34</code> or <code>ER34</code></td>
+				<td>Number</td>
+				<td>Floating point 32-bit number at byte 34 of input area</td>
+			</tr>
+			<tr>
+				<td><code>QR36</code> or <code>AR36</code></td>
+				<td><code>QR36</code> or <code>AR36</code></td>
+				<td>Number</td>
+				<td>Floating point 32-bit number at byte 36 of output area</td>
+			</tr>
+			<tr>
+				<td><code>FR38</code></td>
+				<td><code>FR38</code></td>
+				<td>Number</td>
+				<td>Floating point 32-bit number at byte 38 of memory area</td>
+			</tr>
+			<tr>
+				<td><code>DB1,DT0</code></td>
+				<td><code>-</code></td>
+				<td>Date**</td>
+				<td>A timestamp in the DATE_AND_TIME format</td>
+			</tr>
+			<tr>
+				<td><code>DB1,DTZ10</code></td>
+				<td><code>-</code></td>
+				<td>Date**</td>
+				<td>A timestamp in the DATE_AND_TIME format, in UTC</td>
+			</tr>
+			<tr>
+				<td><code>DB2,DTL2</code></td>
+				<td><code>-</code></td>
+				<td>Date**</td>
+				<td>A timestamp in the DTL format</td>
+			</tr>
+			<tr>
+				<td><code>DB1,DTLZ12</code></td>
+				<td><code>-</code></td>
+				<td>Date**</td>
+				<td>A timestamp in the DTL format, in UTC</td>
+			</tr>
+			<tr>
+				<td><code>DB57,RWORD4</code></td>
+				<td><code>DB57.DBW4</code></td>
+				<td>Number</td>
+				<td>Unsigned 16-bit number at byte 4 of DB 57, interpreted as Little-Endian</td>
+			</tr>
+			<tr>
+				<td><code>DB13,RDI5</code> or <code>DB13,RDINT5</code></td>
+				<td><code>DB13.DBD5</code></td>
+				<td>Number</td>
+				<td>Signed 32-bit number at byte 5 of DB 13, interpreted as Little-Endian</td>
+			</tr>
+			<tr>
+				<td><code>FRW20</code></td>
+				<td><code>FRW20</code></td>
+				<td>Number</td>
+				<td>Unsigned 16-bit number at byte 20 of memory area, interpreted as Little-Endian</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<p>*) Note that strings on the PLC uses 2 extra bytes at start for size/length of the string</p>
+	<p>**) Note that javascript's <code>Date</code> are <i>always</i> represented in UTC. Please use other nodes like <a href="https://flows.nodered.org/node/node-red-contrib-moment" target="_blank">node-red-contrib-moment</a> to properly handle type conversions</p>
+</script>   
+
+
+<script type="text/html" data-help-name="s5 control">
+	<p>Enables advanced control of the PLC and the connection</p>
+	<p>This node was created by <a href="https://st-one.io" target="_blank">ST-One</a></p>
+	
+	<h3>Details</h3>
+	<p>The behavior of this node is changed according to the selected function. Each function
+		has its own configuration, expects different parameters in the messages, and sends
+		different messages out
+	</p>
+	<dl class="message-properties">
+		<dt>Cycle Time</dt>
+		<dd>
+			Changes the time interval between each cyclic read 
+			of variables. It expects a message with <code>payload</code> with a 
+			positive number, being the time in milliseconds between each read. A 
+			value of zero disables the cyclic read.
+		</dd>
+
+		<dt>Trigger read</dt>
+		<dd>
+			Manually triggers a read cycle. No message parameters are used and the 
+			same message is sent on the output. Useful when longer cycle times are 
+			used, but an instant feedback is needed (for example after changing a 
+			variable). Note that the <i>melsec in</i> nodes are still required to read
+			the values of the variables.
+		</dd>
+	</dl>
+</script>
+
+
+<script type="text/html" data-help-name="s5 in">
+
+	<p>Reads data from an S5 PLC</p>
+	<p>This node was created by <a href="https://st-one.io" target="_blank">ST-One</a></p>
+
+	<h3>Outputs</h3>
+	<dl class="message-properties">
+		<dt>payload<span class="property-type">any</span></dt>
+		<dd>
+			The value(s) as read from the PLC. The format and type of the payload
+			depends on the configured "Mode"
+		</dd>
+	</dl>
+
+	<h3>Details</h3>
+	<p>
+		All data is read cyclically from the PLC as configured in the <i>s5 plc</i>, 
+		but there are three modes of making it available in a flow:
+	</p>
+	<ul>
+		<li>
+			<b>Single variable:</b> A single variable can be selected from the configured 
+			variables, and a message is sent every cycle, or only when it changes if 
+			<i>diff</i> is checked. <code>msg.payload</code> contains the variable's value
+			and <code>msg.topic</code> has the variable's name.
+		</li>
+		<li>
+			<b>All variables, one per message:</b> Like the <i>Single variable</i> mode, 
+			but for all variables configured. If <i>diff</i> is checked, a message is sent
+			everytime any variable changes. If <i>diff</i> is unchecked, one message is sent 
+			for every variable, in every cycle. Care must be taken about the number of 
+			messages per second in this mode.
+		</li>
+		<li>
+			<b>All variables:</b> In this mode, <code>msg.payload</code> contains an object 
+			with all configured variables and their values. If <i>diff</i> is checked, a 
+			message is sent if at least one of the variables changes its value.
+		</li>
+	</ul>
+</script>

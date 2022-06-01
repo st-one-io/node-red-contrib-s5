@@ -1,0 +1,617 @@
+<script type="text/html" data-template-name="s5 plc">
+
+    <div class="form-row">
+		<label for="node-config-input-serialport"><i class="fa fa-usb"></i> <span data-i18n="s5.plc.label.serialport"></span></label>
+		<input type="text" id="node-config-input-serialport" data-i18n="[placeholder]s5.plc.label.serialport" style="width: 60%; margin-right: 10px;">
+		<a id="node-config-lookup-serialport" class="btn red-ui-button" data-i18n="[title]s5.plc.label.search"><i class="fa fa-search"></i></a>
+	</div>
+	
+	<div class="form-row">
+        <label for="node-config-input-cycletime"><i class="fa fa-refresh"></i> <span data-i18n="s5.plc.label.cycletime"></span></label>
+        <input type="text" id="node-config-input-cycletime" data-i18n="[placeholder]s5.plc.label.cycletime" style="width: 80px;"> <span>ms</span>
+    </div>
+
+    <div class="form-row" style="margin-bottom:0;">
+        <label><i class="fa fa-list"></i> <span data-i18n="s5.plc.label.variables.list"></span></label>
+    </div>
+    <div class="form-row node-input-variables-container-row" style="margin-bottom: 0px;">
+        <div id="node-config-input-variables-container-div" style="box-sizing: border-box; border-radius: 5px; height: 300px; padding: 5px; border: 1px solid #ccc; overflow-y:scroll;">
+            <ol id="node-config-input-variables-container" style=" list-style-type:none; margin: 0;"></ol>
+        </div>
+    </div>
+    <div class="form-row">
+        <a href="#" class="editor-button editor-button-small" id="node-config-s5-plc-var-export" style="margin: 4px; float: right"><i class="fa fa-download"></i> <span data-i18n="s5.plc.label.variables.export"></span></a>
+        <input type="file" id="node-config-s5-plc-var-import" style="display: none"/>
+        <a href="#" class="editor-button editor-button-small" id="node-config-s5-plc-var-import-btn" style="margin: 4px; float: right"><i class="fa fa-upload"></i> <span data-i18n="s5.plc.label.variables.import"></span></a>
+        <a href="#" class="editor-button editor-button-small" id="node-config-input-add-variable" style="margin: 4px;"><i class="fa fa-plus"></i> <span data-i18n="s5.plc.label.variables.add"></span></a>
+        <a href="#" class="editor-button editor-button-small" id="node-config-s5-plc-var-clean" style="margin: 4px;"><i class="fa fa-trash-o"></i> <span data-i18n="s5.plc.label.variables.clean"></span></a>
+    </div>
+
+    <br>
+
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="s5.label.name"></span></label>
+        <input type="text" id="node-config-input-name" data-i18n="[placeholder]s5.label.name">
+    </div>
+    
+</script>
+
+<script type="text/javascript">
+	var saveAs = saveAs || function (e) { "use strict"; if (typeof e === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) { return } var t = e.document, n = function () { return e.URL || e.webkitURL || e }, r = t.createElementNS("http://www.w3.org/1999/xhtml", "a"), o = "download" in r, a = function (e) { var t = new MouseEvent("click"); e.dispatchEvent(t) }, i = /constructor/i.test(e.HTMLElement) || e.safari, f = /CriOS\/[\d]+/.test(navigator.userAgent), u = function (t) { (e.setImmediate || e.setTimeout)(function () { throw t }, 0) }, s = "application/octet-stream", d = 1e3 * 40, c = function (e) { var t = function () { if (typeof e === "string") { n().revokeObjectURL(e) } else { e.remove() } }; setTimeout(t, d) }, l = function (e, t, n) { t = [].concat(t); var r = t.length; while (r--) { var o = e["on" + t[r]]; if (typeof o === "function") { try { o.call(e, n || e) } catch (a) { u(a) } } } }, p = function (e) { if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(e.type)) { return new Blob([String.fromCharCode(65279), e], { type: e.type }) } return e }, v = function (t, u, d) { if (!d) { t = p(t) } var v = this, w = t.type, m = w === s, y, h = function () { l(v, "writestart progress write writeend".split(" ")) }, S = function () { if ((f || m && i) && e.FileReader) { var r = new FileReader; r.onloadend = function () { var t = f ? r.result : r.result.replace(/^data:[^;]*;/, "data:attachment/file;"); var n = e.open(t, "_blank"); if (!n) e.location.href = t; t = undefined; v.readyState = v.DONE; h() }; r.readAsDataURL(t); v.readyState = v.INIT; return } if (!y) { y = n().createObjectURL(t) } if (m) { e.location.href = y } else { var o = e.open(y, "_blank"); if (!o) { e.location.href = y } } v.readyState = v.DONE; h(); c(y) }; v.readyState = v.INIT; if (o) { y = n().createObjectURL(t); setTimeout(function () { r.href = y; r.download = u; a(r); h(); c(y); v.readyState = v.DONE }); return } S() }, w = v.prototype, m = function (e, t, n) { return new v(e, t || e.name || "download", n) }; if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) { return function (e, t, n) { t = t || e.name || "download"; if (!n) { e = p(e) } return navigator.msSaveOrOpenBlob(e, t) } } w.abort = function () { }; w.readyState = w.INIT = 0; w.WRITING = 1; w.DONE = 2; w.error = w.onwritestart = w.onprogress = w.onwrite = w.onabort = w.onerror = w.onwriteend = null; return m }(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content); if (typeof module !== "undefined" && module.exports) { module.exports.saveAs = saveAs } else if (typeof define !== "undefined" && define !== null && define.amd !== null) { define("FileSaver.js", function () { return saveAs }) }
+</script>
+
+<script type="text/javascript">
+    
+	function validateSerialport(serialport) {
+		if (!serialport || serialport === "") return false;
+		return true;
+	}
+	
+	function validateS5Address(address) {
+
+        if (!address) return 'ERR_PARSE_EMPTY';
+
+        var NODES5_REGEX_ADDR = /^(?:(DB|DX)(\d+),)?([A-Z]+)(\d+)(?:\.(\d+))?(?:\.(\d+))?$/;
+        var NODES5_ADDRTYPE = ["E", "I", "A", "Q", "P", "F", "T", "C"];
+        var NODES5_DATATYPE = ["X", "B", "C", "I", "DI", "W", "D", "DW", "R", "RI", "RDI", "RW", "RD", "RDW", "RR"];
+        var NODES5_DATATYPE_DB = ["X", "BYTE", "CHAR", "STRING", "INT", "DINT", "WORD", "DWORD", "REAL", "RINT", "RDINT", "RWORD", "RDWORD", "RREAL", "DT", "DTZ", "DTL", "DTLZ", "B", "C", "S", "I", "DI", "W", "D", "DW", "R", "RI", "RDI", "RW", "RD", "RDW", "RR"];
+
+        var match = address.match(NODES5_REGEX_ADDR);
+        if (!match) return 'ERR_PARSE_UNKNOWN_FORMAT';
+
+        let addrType = match[1];
+        let match_db = match[2];
+        let match_area = match[3];
+        let match_addr = match[4];
+        let match_bitAddr = parseInt(match[5]);
+        let match_arrLen = parseInt(match[6]);
+
+        var dataType, addressOffset, dbNumber;
+
+        addressOffset = parseInt(match_addr)
+        if (isNaN(addressOffset)) return 'ERR_PARSE_ADDR_OFFSET';
+
+        if (match_db) {
+            dbNumber = parseInt(match_db);
+            if (dbNumber < 1 || isNaN(dbNumber)) return 'ERR_PARSE_DB_NUMBER';
+        }
+
+        if (dbNumber) {
+            if (!NODES5_DATATYPE_DB.includes(match_area)) return 'ERR_PARSE_DB_DATATYPE';
+            dataType = match_area;
+        } else {
+            // the first char indicates the PLC area (I, Q, M, P, ...)
+            addrType = match_area.charAt(0);
+            // the data type (if area is P, skip the first char (I,E,Q,A))
+            dataType = match_area.substr(addrType === "P" ? 2 : 1);
+
+            // validate address type
+            if (!NODES5_ADDRTYPE.includes(addrType)) return 'ERR_PARSE_AREA';
+
+            if (dataType === "" && addrType !== "T" && addrType !== "C") {
+                dataType = "X";
+            }
+
+            // validate data type
+            if (!NODES5_DATATYPE.includes(dataType)) return 'ERR_PARSE_DATATYPE';
+        }
+
+        if (dataType === "X") {
+            // handle array lengths and bit address
+            if (isNaN(match_bitAddr)) return 'ERR_PARSE_BIT_OFFSET';
+            if (match_bitAddr > 7) return 'ERR_PARSE_BIT_OFFSET';
+
+        } else if (dataType === "STRING" || dataType === "S") {
+            // match_bitAddr is the string length for string types
+            if (isNaN(match_bitAddr) || match_bitAddr < 1) return 'ERR_PARSE_STRING_LEN';
+
+        } else {
+            // the array length should be at the bitAddr field, this is a syntax error
+            if (!isNaN(match_arrLen)) return 'ERR_PARSE_INVALID_BIT_OFFSET';
+
+            // the bitAddr field is actually the array length
+            if (!isNaN(match_bitAddr) && match_bitAddr < 1) return 'ERR_PARSE_INVALID_ARR_LEN';
+        }
+
+        return null;
+    }
+
+    
+    function validateAddressList(list) {
+		for (var i = 0; i < list.length; i++){
+			var elm = list[i];
+			if (!elm.name) return false;
+			if (validateS5Address(elm.addr)) return false;
+		}
+		return true;
+	}
+    
+    RED.nodes.registerType('s5 plc', {
+        category: 'config',
+        color: '#ff00c8',
+        defaults: {
+            name: {
+                value: ""
+            },
+			serialport: {
+				value: "",
+				validate: validateSerialport
+			},
+            cycletime: {
+				value: 1000
+			},
+            vartable: {
+				value: [{
+					name: "",
+					addr: ""
+				}],
+				validate: validateAddressList
+			}
+        },
+        label: function () {
+			var self = this;
+
+			if (this.name) return this.name;
+
+			return "s5 plc";
+		},
+        oneditprepare: function () {
+            var self = this;
+			var tt = this._.bind(this);
+
+            var labelName = this._("s5.plc.label.variables.name");
+			var labelAddr = this._("s5.plc.label.variables.addr");
+			var labelDel = this._("s5.plc.label.variables.del");
+
+			var fieldSerialport = $('#node-config-input-serialport');
+			var lookupSerialportBtn = $('#node-config-lookup-serialport');
+            
+            $("#node-config-input-cycletime").spinner({
+                min: 0
+            });
+
+            function generateVariable(variable) {
+                var curTooltip;
+				var previousValue = variable.addr;
+				var container = $('<li/>', {
+					style: "background: #fff; margin:0; padding:8px 0px; border-bottom: 1px solid #ccc;"
+				});
+				var row1 = $('<div/>').appendTo(container);
+
+				var variableAddr = $('<input/>', {
+					style: "width: 110px; margin-right: 10px;",
+					class: "node-config-input-variable-addr",
+					type: "text",
+					placeholder: labelAddr
+				}).appendTo(row1);
+
+				var variableName = $('<input/>', {
+					style: "width: 250px",
+					class: "node-config-input-variable-name",
+					type: "text",
+					placeholder: labelName
+				}).appendTo(row1);
+
+				var finalspan = $('<span/>', {
+					style: "float: right; margin-right: 10px;"
+				}).appendTo(row1);
+				var deleteButton = $('<a/>', {
+					href: "#",
+					class: "editor-button editor-button-small",
+					style: "margin-top: 7px; margin-left: 5px;",
+					title: labelDel
+				}).appendTo(finalspan);
+
+				$('<i/>', {
+					class: "fa fa-remove"
+				}).appendTo(deleteButton);
+
+				deleteButton.click(function () {
+					container.css({
+						"background": "#fee"
+					});
+					container.fadeOut(150, function () {
+						$(this).remove();
+					});
+					if (curTooltip) curTooltip.close();
+				});
+
+                variableAddr.change(function () {
+					//validate address
+					var curVal = variableAddr.val();
+					var valError = validateS5Address(curVal);
+					if (valError) {
+						variableAddr.addClass('input-error')
+						var errorText = tt("s5.plc.validation." + valError);
+						if (curTooltip) {
+							curTooltip.setContent(errorText);
+							curTooltip.open();
+						} else if (RED.popover && RED.popover.tooltip){
+							curTooltip = RED.popover.tooltip(variableAddr, errorText);
+							curTooltip.open();
+						}
+					} else {
+						variableAddr.removeClass('input-error');
+						if(curTooltip) {
+							curTooltip.close();
+							curTooltip.setContent('');
+							//hack to remove the popup, as Node-RED don't offer
+							// and "unbind" function. May break in the future
+							variableAddr.off('mouseenter mouseleave disabled');
+							curTooltip = null;
+						}
+					}
+
+					//update name if matching old one
+					if (previousValue && variableName.val() == previousValue) {
+						variableName.val(curVal);
+					}
+					previousValue = curVal;
+				});
+
+				//populate data
+				variableAddr.val(variable.addr);
+				variableName.val(variable.name);
+				variableAddr.change();
+
+				$("#node-config-input-variables-container").append(container);
+			}
+
+			function cleanVarTable() {
+				$("#node-config-input-variables-container").children().remove();
+			}
+
+			function populateVarTable() {
+				if (self.vartable) {
+					if (typeof self.vartable == 'string') {
+						self.vartable = JSON.parse(self.vartable);
+					}
+					for (var i = 0; i < self.vartable.length; i++) {
+						generateVariable(self.vartable[i]);
+					}
+				}
+			}
+
+			$("#node-config-input-add-variable").click(function () {
+                generateVariable({
+					name: "",
+					addr: ""
+				});
+			});
+
+            $("#node-config-s5-plc-var-clean").click(cleanVarTable);
+
+            populateVarTable();
+
+			var lookupSerialportValue = null;
+			fieldSerialport.change(function() {
+				lookupSerialportValue = null;
+			})
+
+			lookupSerialportBtn.click(function () {
+				if (lookupSerialportBtn.hasClass('disabled')) return;
+
+				lookupSerialportBtn.addClass('disabled');
+				var iconLookup = lookupSerialportBtn.children('i');
+				iconLookup.removeClass('fa-search').addClass('fa-spinner fa-spin fa-fw');
+
+				$.getJSON('__node-red-contrib-s5/discover/serialports', function (data) {
+					console.log("node-red-contrib-s5 serial ports", data)
+
+					var listData = $.map(data, function(val){
+						return { label: val['manufacturer'], path: val['path']}
+					})
+
+					fieldSerialport.autocomplete({
+						source: listData,
+						minLength: 0,
+						create: function (event, ui) {
+							$(this).data('ui-autocomplete')._renderItem = function (ul, elm) {
+								let label = elm.label ? elm.label : 'Undefined';
+								
+								elmHtml = '<a>'
+									+ '<b>' + label + '</b>'
+									+ '<br/>'+ elm.path + '</a>'
+								return $('<li style="padding: 2px">').attr("data-value", elm.path).append(elmHtml).appendTo(ul);
+							};
+						},
+						select: function (event, ui) {
+							let elm = ui.item
+							
+							event.preventDefault();
+							event.stopPropagation();
+							fieldSerialport.val(elm.path);
+							fieldSerialport.change();
+
+							lookupSerialportValue = elm;
+						}
+					});
+					
+					fieldSerialport.focus(function() {
+						fieldSerialport.autocomplete("search", "")
+					});
+					fieldSerialport.focus();
+				}).always(function() {
+					iconLookup.removeClass('fa-spinner fa-spin fa-fw').addClass('fa-search');
+					lookupSerialportBtn.removeClass('disabled');
+				});
+			});
+
+            // export
+			function exportCSV() {
+				var vars = $("#node-config-input-variables-container").children();
+				var lines = [];
+
+				vars.each(function (i) {
+					var elm = $(this);
+					lines.push([
+						elm.find(".node-config-input-variable-addr").val(), //addr
+						elm.find(".node-config-input-variable-name").val() //name
+					].join(';'));
+				});
+
+				saveAs(new Blob([lines.join('\r\n')]), 's5plc' + (self.name ? '_' + self.name : '') + '.csv');
+			}
+            $('#node-config-s5-plc-var-export').click(exportCSV);
+
+			// import
+			function importCSV(e) {
+				var file = e.target.files[0];
+				if (!file) {
+					return;
+				}
+				var reader = new FileReader();
+				reader.onload = function (e) {
+					var res = [], i, fields;
+					var contents = e.target.result || '';
+					var lines = contents.split(/[\r\n]+/);
+
+					if (!lines.length) {
+						alert('file is empty!');
+						return;
+					}
+
+					for (i = 0; i < lines.length; i++) {
+
+						lines[i] = lines[i].trim();
+						if (lines[i] == '') continue;
+
+						fields = lines[i].split(/[\t;]/);
+
+						if (fields.length < 2) {
+							alert('line must have at least two parameters, address and name');
+							return;
+						}
+						res.push({
+							addr: fields[0],
+							name: fields[1]
+						});
+					}
+
+					if (res.length) {
+						cleanVarTable();
+						self.vartable = res;
+						populateVarTable();
+					}
+				};
+				reader.readAsText(file);
+			}
+			$('#node-config-fd1-plc-var-import').on('change', importCSV);
+			$('#node-config-fd1-plc-var-import-btn').click(function () {
+				$('#node-config-fd1-plc-var-import').click();
+			})
+
+
+        },
+        oneditsave: function () {
+			var node = this;
+			var vars = $("#node-config-input-variables-container").children();
+			node.vartable = [];
+
+			vars.each(function (i) {
+				var elm = $(this);
+				var addr = elm.find(".node-config-input-variable-addr").val();
+				var name = elm.find(".node-config-input-variable-name").val();
+				var v = {
+					addr: addr,
+					name: name || addr
+				}
+				node.vartable.push(v);
+			});
+		}
+    });
+</script>
+
+<!-- ######################################################################################## -->
+
+<script type="text/html" data-template-name="s5 in">
+
+    <div class="form-row">
+        <label for="node-input-plc">
+            <i class="fa fa-cog"></i>
+            <span data-i18n="s5.in.label.plc"></span>
+        </label>
+        <input type="text" id="node-input-plc" data-i18n="[placeholder]s5.in.label.plc">
+    </div>
+
+    <div class="form-row">
+		<label for="node-input-mode"><i class="fa fa-sliders"></i> <span data-i18n="s5.in.label.mode"></span></label>
+		<select type="text" id="node-input-mode">
+			<option value="single" data-i18n="s5.in.mode.single"></option>
+			<option value="all-split" data-i18n="s5.in.mode.all-split"></option>
+			<option value="all" data-i18n="s5.in.mode.all"></option>
+		</select>
+	</div>
+
+	<div class="form-row s5-input-var-row">
+		<label for="node-input-variable"><i class="fa fa-random"></i> <span data-i18n="s5.in.label.variable"></span></label>
+		<select type="text" id="node-input-variable">
+		</select>
+    <span id="s5-custom-var-addr" style="margin-left:5px"></span>
+	</div>
+
+	<div class="form-row">
+		<label>&nbsp;</label>
+		<input type="checkbox" id="node-input-diff" style="display: inline-block; width: auto; vertical-align: top;">
+		<label for="node-input-diff" style="width:70%;"><span data-i18n="s5.in.label.diff"></span></label>
+	</div> 
+
+    <div class="form-row">
+        <label for="node-input-name">
+            <i class="fa fa-tag"></i>
+            <span data-i18n="s5.label.name"></span>
+        </label>
+        <input type="text" id="node-input-name" data-i18n="[placeholder]s5.label.name">
+    </div> 
+
+</script>
+
+<script type="text/javascript"> 
+    (function () {
+
+        RED.nodes.registerType('s5 in', {
+            category: 'plc',
+            color: '#ff00c8',
+            defaults: {
+                plc: {
+                    value: "",
+                    type: "s5 plc"
+                },
+                mode: {
+				    value: "single"
+                },
+                variable: {
+                    value: ""
+                },
+                diff: {
+                    value: true
+                },
+                name: {
+                    value: ""
+                }
+            },
+            inputs: 0,
+            outputs: 1,
+            icon: "serial.png",
+            paletteLabel: "s5 in",
+            label: function () {
+			    if (this.name) return this.name;
+                return this._("s5.in.label.name");
+            },
+            labelStyle: function () {
+                return this.name ? "node_label_italic" : "";
+            },
+            oneditprepare: function () {
+                var self = this;
+
+                var varList = $('#node-input-variable');
+                var varAddr = $('#s5-custom-var-addr');
+                var modeList = $('#node-input-mode');
+                var plcList = $("#node-input-plc");
+                var vars = [];
+
+                function updateVarList(plcId) {
+                    $('#node-input-variable option').remove();
+
+                    var plcNode = RED.nodes.node(plcId);
+                    if (!plcNode) return;
+                    vars = plcNode.vartable || [];
+                    if (typeof vars === 'string') vars = JSON.parse(vars);
+
+                    varList.append($('<option/>', {
+                        disabled: "disabled",
+                        selected: "selected",
+                        style: "display:none;",
+                        text: vars.length ? self._("s5.in.label.variable-select") : self._("s5.in.label.variable-novar")
+                    }));
+
+                    $.each(vars, function (i, val) {
+                        varList.append($('<option/>', {
+                            value: val.name || val.addr,
+                            text: val.name || val.addr
+                        }));
+                        if (val.name == self.variable) {
+                            varList.val(self.variable);
+                        }
+                    });
+                }
+
+                varList.change(function () {
+                    $.each(vars, function (i, val) {
+                        if (varList.val() == val.name) {
+                            varAddr[0].innerText = val.addr;
+                            return true;
+                        }
+                    });
+                });
+
+                plcList.change(function () {
+                    updateVarList(plcList.val());
+                });
+                updateVarList(self.plc);
+
+                modeList.change(function () {
+                    if (modeList.val() == "single") {
+                        varList.parent().show();
+                    } else {
+                        varList.parent().hide();
+                    }
+                });
+                modeList.change();
+            }
+        });
+
+    })();
+</script>
+
+<!-- ######################################################################################## -->
+
+<script type="text/html" data-template-name="s5 control">
+	<div class="form-row">
+		<label for="node-input-plc"><i class="fa fa-bolt"></i> <span data-i18n="s5.control.label.plc"></span></label>
+		<input type="text" id="node-input-plc" data-i18n="[placeholder]s5.control.label.plc">
+	</div>
+	<div class="form-row">
+		<label for="node-input-function"><i class="fa fa-sliders"></i> <span data-i18n="s5.control.label.function"></span></label>
+		<select type="text" id="node-input-function">
+			<option value="cycletime" data-i18n="s5.control.function.cycletime"></option>
+			<option value="trigger" data-i18n="s5.control.function.trigger"></option>
+		</select>
+	</div>
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="s5.label.name"></span></label>
+		<input type="text" id="node-input-name" data-i18n="[placeholder]s5.label.name">
+	</div>
+</script>
+
+<script type="text/javascript">
+	RED.nodes.registerType('s5 control', {
+		category: 'plc',
+		defaults: {
+			plc: {
+				value: "",
+				type: "s5 plc",
+				required: true
+			},
+			function: {
+				value: "cycletime"
+			},
+			name: {
+				value: ""
+			}
+		},
+		color: "#ff00c8",
+		inputs: 1,
+		outputs: 1,
+		icon: "serial.png",
+		paletteLabel: "s5 control",
+		label: function () {
+			if (this.name) return this.name;
+			return this._("s5.control.label.name");
+		},
+		labelStyle: function () {
+			return this.name ? "node_label_italic" : "";
+		}
+	});
+</script>
+

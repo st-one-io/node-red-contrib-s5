@@ -1,0 +1,19 @@
+{
+  "name": "red-contrib-s5",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Fernando Amorim",
+  "license": "ISC",
+  "optionalDependencies": {
+    "@protocols/nodes5": "^1.0.0"
+  },
+  "node-red": {
+    "nodes": {
+        "s5": "red/s5.js"
+    }
+  }
+}

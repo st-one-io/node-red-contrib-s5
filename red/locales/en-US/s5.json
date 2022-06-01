@@ -1,0 +1,81 @@
+{
+    "s5":{
+        "plc": {
+            "status": {
+                "online": "online",
+                "offline":"offline",
+                "connecting": "connecting",
+                "unknown": "unknown"
+            },
+            "label": {
+                "variables": {
+                    "list": "Variable list",
+                    "add": "Add",
+                    "clean": "Remove all",
+                    "del": "Remove",
+                    "name": "Var. Name",
+                    "addr": "Var. Address",
+                    "export": "Export",
+                    "import": "Import"
+                },
+                "cycletime": "Cycle Time",
+                "serialport": "Port Path",
+                "search": "Search"
+            },
+            "error": {
+                "invalidtimeinterval": "Invalid time interval for cycle time of \"__interval__\""
+            },
+            "info": {
+                "cycletimetooshort": "Cycle time too short, enforcing minimum of __min__ ms",
+                "novars": "No variables configured, skipping cyclic reading"
+            },
+            "validation": {
+                "ERR_PARSE_EMPTY": "Address cannot be empty",
+                "ERR_PARSE_UNKNOWN_FORMAT": "Unknown address format, check node's help section",
+                "ERR_PARSE_ADDR_OFFSET": "Byte offset is invalid",
+                "ERR_PARSE_DB_NUMBER": "Number of DB is unknown or invalid",
+                "ERR_PARSE_DB_DATATYPE": "Data type of DB area is unknown or invalid",
+                "ERR_PARSE_AREA": "Area addressed is unknown or invalid",
+                "ERR_PARSE_DATATYPE": "Data type is unknown or invalid",
+                "ERR_PARSE_BIT_OFFSET": "Bit offset is missing or is invalid",
+                "ERR_PARSE_STRING_LEN": "String length is missing or is invalid",
+                "ERR_PARSE_INVALID_BIT_OFFSET": "Bit offset not supported for this type",
+                "ERR_PARSE_INVALID_ARR_LEN": "Array length specified is invalid"
+            }
+        },
+        "in": {
+            "label": {
+                "name": "s5 in",
+                "endpoint": "PLC",
+                "mode": "Mode",
+                "variable": "Variable",
+                "diff": "Emit only when value changes (diff)",
+                "variable-select": "Select a variable",
+                "variable-novar": "No variables"
+            },
+            "mode": {
+                "single": "Single variable",
+                "all-split": "All variables, one per message",
+                "all": "All variables"
+            }
+        },
+        "control": {
+            "label": {
+                "name": "s5 control",
+                "function": "Function",
+                "s5plc": "PLC"
+            },
+            "function": {
+                "cycletime": "Cycle time",
+                "trigger": "Trigger read"
+            }
+        },
+        "label": {
+            "name": "Name"
+        },
+        "error": {
+            "missingconfig": "Missing configuration",
+            "invalidcontrolfunction": "Invalid control function \"__function__\""
+        }
+    }
+}
