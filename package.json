@@ -1,5 +1,5 @@
 {
-  "name": "red-contrib-s5",
+  "name": "node-red-contrib-s5",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
