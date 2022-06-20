@@ -4,8 +4,13 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const Port = require('@protocols/nodes5').S5PLC
-const nodes5 = require('@protocols/nodes5');
+try {
+    var Port = require('@protocols/nodes5').S5PLC
+    var nodes5 = require('@protocols/nodes5');
+} catch (error) {
+    var Port = null;
+    var nodes5 = null;
+}
 
 function nrInputShim(node, fn) {
     node.on('input', function (msg, send, done) {
@@ -39,6 +44,7 @@ var MIN_CYCLE_TIME = 1000;
 
 module.exports = function (RED) {
     RED.httpAdmin.get('/__node-red-contrib-s5/discover/serialports', RED.auth.needsPermission('s5.discover'), function (req, res) {
+        if (!Port) return res.status(500).end(); 
         Port.listPorts().then(function (serialports) {
             res.json(serialports).end();
         }).catch(() => {
@@ -222,6 +228,8 @@ module.exports = function (RED) {
         }
         
         async function connect() {
+
+            if (!nodes5) return that.error('Missing "@protocols/nodes5" dependency, avaliable only on the ST-One hardware. Please contact us at "st-one.io" for pricing and more information.') 
             
             manageStatus('connecting');
             
@@ -312,8 +320,10 @@ module.exports = function (RED) {
         }
 
         function updateCycleEvent(obj) {
-            obj.err = updateCycleTime(obj.msg.payload);
-            that.emit('__UPDATE_CYCLE_RES__', obj);
+            if (connected) {
+                obj.err = updateCycleTime(obj.msg.payload);
+                that.emit('__UPDATE_CYCLE_RES__', obj);
+            }
         }
 
         manageStatus('offline');
