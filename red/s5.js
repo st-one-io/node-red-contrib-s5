@@ -127,7 +127,9 @@ module.exports = function (RED) {
 
         function doCycle() {
             if (!readInProgress && connected) {
-                addressGroup.readAllItems().then(cycleCallback).catch(e => {
+                addressGroup.readAllItems()
+                .then(cycleCallback)
+                .catch(e => {
                     that.error(e, {});
                     readInProgress = false;
                 });
@@ -249,11 +251,22 @@ module.exports = function (RED) {
         }
 
         function onPlcConnect() {
+            if (_reconnectTimeout !== null) {
+                clearInterval(_reconnectTimeout);
+                _reconnectTimeout = null;
+            }
+            connected = true;
             manageStatus('online');
         }
 
         function onPlcDisconnected() {
+            that.emit('disconnected')
             manageStatus('offline');
+
+            if (!_reconnectTimeout) {
+                _reconnectTimeout = setInterval(connect, 5000);
+            }
+            
         }
 
         function onConnect() {
@@ -268,7 +281,7 @@ module.exports = function (RED) {
 
             that.emit('connected')
 
-            manageStatus('online');
+            manageStatus('connecting');
 
             let _vars = createTranslationTable(config.vartable);
 
