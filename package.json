@@ -9,11 +9,11 @@
   "author": "Fernando Amorim",
   "license": "ISC",
   "optionalDependencies": {
-    "@protocols/nodes5": "^1.0.0"
-  },
+    "@protocols/nodes5": "^1.0.2"
+  },  
   "node-red": {
     "nodes": {
-        "s5": "red/s5.js"
+      "s5": "red/s5.js"
     }
   }
 }
