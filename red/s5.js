@@ -4,13 +4,10 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
+let nodes5;
 try {
-    var Port = require('@protocols/nodes5').S5PLC
-    var nodes5 = require('@protocols/nodes5');
-} catch (error) {
-    var Port = null;
-    var nodes5 = null;
-}
+    nodes5 = require('@protocols/nodes5');
+} catch (e) { }
 
 function nrInputShim(node, fn) {
     node.on('input', function (msg, send, done) {
@@ -44,8 +41,9 @@ var MIN_CYCLE_TIME = 1000;
 
 module.exports = function (RED) {
     RED.httpAdmin.get('/__node-red-contrib-s5/discover/serialports', RED.auth.needsPermission('s5.discover'), function (req, res) {
-        if (!Port) return res.status(500).end(); 
-        Port.listPorts().then(function (serialports) {
+        if (!nodes5) return res.status(500).end(); 
+
+        nodes5.S5PLC.listPorts().then(function (serialports) {
             res.json(serialports).end();
         }).catch(() => {
             res.status(500).end();
@@ -107,6 +105,7 @@ module.exports = function (RED) {
     }
 
     function S5Plc(config) {
+        const node = this;
         let oldValues = {};
         let readInProgress = false;
         let readDeferred = 0;
@@ -115,12 +114,19 @@ module.exports = function (RED) {
         let _cycleInterval;
         let _reconnectTimeout = null;
         let connected = false;
+        let closing = false;
         let status;
-        let that = this;
+        /** @type {import('@protocols/nodes5').S5PLC} */
         let plcs5 = null;
         let addressGroup = null;
         
         RED.nodes.createNode(this, config);
+
+        if (!portPath) {
+            manageStatus('offline');
+            node.error('Undefined port path!');
+            return;
+        }
 
         //avoids warnings when we have a lot of S5 In nodes
         this.setMaxListeners(0);
@@ -128,18 +134,18 @@ module.exports = function (RED) {
             if (status == newStatus) return;
 
             status = newStatus;
-            that.emit('__STATUS__', status);
+            node.emit('__STATUS__', status);
         }
 
         function doCycle() {
             if (!readInProgress && connected) {
+                readInProgress = true;
                 addressGroup.readAllItems()
                 .then(cycleCallback)
                 .catch(e => {
-                    that.error(e, {});
+                    node.error(e, {});
                     readInProgress = false;
                 });
-                readInProgress = true;
             } else {
                 readDeferred++;
             }
@@ -156,26 +162,26 @@ module.exports = function (RED) {
             manageStatus('online');
 
             var changed = false;
-            that.emit('__ALL__', values);
+            node.emit('__ALL__', values);
             Object.keys(values).forEach(function (key) {
                 if (!equals(oldValues[key], values[key])) {
                     changed = true;
-                    that.emit(key, values[key]);
-                    that.emit('__CHANGED__', {
+                    node.emit(key, values[key]);
+                    node.emit('__CHANGED__', {
                         key: key,
                         value: values[key]
                     });
                     oldValues[key] = values[key];
                 }
             });
-            if (changed) that.emit('__ALL_CHANGED__', values);
+            if (changed) node.emit('__ALL_CHANGED__', values);
         }
 
         function updateCycleTime(interval) {
             let time = parseInt(interval);
 
             if (isNaN(time) || time < 0) {
-                that.error(RED._("s5.plc.error.invalidtimeinterval", { interval: interval }));
+                node.error(RED._("s5.plc.error.invalidtimeinterval", { interval: interval }));
                 return false
             }
 
@@ -185,7 +191,7 @@ module.exports = function (RED) {
             if (!time) return false;
 
             if (time < MIN_CYCLE_TIME) {
-                that.warn(RED._("s5.plc.info.cycletimetooshort", { min: MIN_CYCLE_TIME }));
+                node.warn(RED._("s5.plc.info.cycletimetooshort", { min: MIN_CYCLE_TIME }));
                 time = MIN_CYCLE_TIME;
             } 
 
@@ -195,101 +201,66 @@ module.exports = function (RED) {
             return true;
         }
 
-        function removeListeners() {
-             if (plcs5 !== null) {
-                that.removeListener('connected',onConnect)      
-                that.removeListener('disconnected',onDisconnect) 
-                that.removeListener('error',onError) 
-                that.removeListener('timeout',onTimeout)           
-
-                plcs5.removeListener('connected', onConnect);
-                plcs5.removeListener('disconnected', onDisconnect);
-                plcs5.removeListener('error', onError);
-                plcs5.removeListener('timeout', onTimeout);
-             }
+        node.updateCycleTime = updateCycleTime;
+        node.getStatus = function getStatus() {
+            return status;
         }
 
         /**
          * Destroys the plcs5 connection
-         * @param {Boolean} [reconnect=true]  
-         * @returns {Promise}
          */
-        async function disconnect(reconnect = true) {
-            if (!connected) return;
-            connected = false;
+        function disconnect(done) {
 
+            connected = false;
             clearInterval(_cycleInterval);
-            _cycleInterval = null;
+            manageStatus('offline');
 
             if (plcs5) {
-                if (!reconnect) plcs5.removeListener('disconnected', onDisconnect);
-                await plcs5.destroy();
-                removeListeners();
+                plcs5.removeListener('connect', onConnect);
+                plcs5.removeListener('close', onDisconnect);
+                plcs5.removeListener('error', onError);
+                plcs5.on('error', err => { //safety net to catch post-close errors
+                    node.error(err);
+                });
+                if (done) {
+                    if (plcs5.closed) {
+                        process.nextTick(() => done());
+                    } else {
+                        plcs5.on('close', done);
+                    }
+                }
+                plcs5.close();
                 plcs5 = null;
+            } else {
+                if (done) done();
             }
         }
         
-        async function connect() {
+        function connect() {
+            clearTimeout(_reconnectTimeout);
 
-            if (!nodes5) return that.error('Missing "@protocols/nodes5" dependency, avaliable only on the ST-One hardware. Please contact us at "st-one.io" for pricing and more information.') 
+            if (!nodes5) return node.error('Missing "@protocols/nodes5" dependency, avaliable only on the ST-One hardware. Please contact us at "st-one.io" more information.') 
             
-            manageStatus('connecting');
-            
-            if (plcs5 !== null) {
-                await disconnect();
-            }
-            
-            if (!portPath) {
-                manageStatus('offline');
-                that.error('Undefined port path!');
-                return;
-            }
-            
-            plcs5 = new nodes5.S5PLC (portPath,{timeout:currentCycleTime});
-            plcs5.on('connected', onConnect);
-            plcs5.on('disconnected', onDisconnect);
-            plcs5.on('error', onError);
-            plcs5.on('timeout', onTimeout);
-            plcs5.on('plcconnected', onPlcConnect);
-            plcs5.on('plcdisconnected', onPlcDisconnected);
-            plcs5.connect();
-
-            addressGroup = new nodes5.s5itemGroup(plcs5);
-
-        }
-
-        function onPlcConnect() {
-            if (_reconnectTimeout !== null) {
-                clearInterval(_reconnectTimeout);
-                _reconnectTimeout = null;
-            }
-            connected = true;
-            manageStatus('online');
-        }
-
-        function onPlcDisconnected() {
-            that.emit('disconnected')
-            manageStatus('offline');
-
-            if (!_reconnectTimeout) {
-                _reconnectTimeout = setInterval(connect, 5000);
-            }
-            
+            disconnect(() => {
+                manageStatus('connecting');
+                
+                plcs5 = new nodes5.S5PLC(portPath, { timeout: currentCycleTime });
+                plcs5.on('connect', onConnect);
+                plcs5.on('close', onDisconnect);
+                plcs5.on('error', onError);
+                plcs5.connect();
+            });
         }
 
         function onConnect() {
+            clearTimeout(_reconnectTimeout);
+
             readInProgress = false;
             readDeferred = 0;
             connected = true;
+            manageStatus('online');
 
-            if (_reconnectTimeout !== null) {
-                clearInterval(_reconnectTimeout);
-                _reconnectTimeout = null;
-            }
-
-            that.emit('connected')
-
-            manageStatus('connecting');
+            addressGroup = new nodes5.s5itemGroup(plcs5);
 
             let _vars = createTranslationTable(config.vartable);
 
@@ -297,7 +268,7 @@ module.exports = function (RED) {
             let varKeys = Object.keys(_vars);
 
             if (!varKeys || !varKeys.length) {
-                that.warn(RED._("s5.plc.info.novars"));
+                node.warn(RED._("s5.plc.info.novars"));
             } else {
                 addressGroup.addItems(varKeys);
                 updateCycleTime(currentCycleTime);
@@ -306,75 +277,44 @@ module.exports = function (RED) {
 
         function onDisconnect() {
 
-            that.emit('disconnected')
             connected = false;
+            clearInterval(_cycleInterval);
             manageStatus('offline');
-            if (!_reconnectTimeout) {
-                _reconnectTimeout = setInterval(connect, 5000);
+
+            if (!closing) {
+                clearTimeout(_reconnectTimeout);
+                _reconnectTimeout = setTimeout(connect, 5000);
             }
         }
 
         function onError(e) {
             manageStatus('offline');
-            that.error(e && e.toString());
-            disconnect();
+            node.error(e instanceof Error ? String(e) : JSON.stringify(e) );
+            //disconnect(); //should disconnect automatically
         }
 
-        function onTimeout(e) {
-            that.emit('timeout')
-
-            manageStatus('offline');
-            that.error(e && e.toString());
-            disconnect();
-        }
-
-        function getStatus() {
-            that.emit('__STATUS__', status);
-        }
-
-        function updateCycleEvent(obj) {
-            if (connected) {
-                obj.err = updateCycleTime(obj.msg.payload);
-                that.emit('__UPDATE_CYCLE_RES__', obj);
-            }
-        }
-
-        manageStatus('offline');
-
-        this.on('__DO_CYCLE__', doCycle);
-        this.on('__UPDATE_CYCLE__', updateCycleEvent);
-        this.on('__GET_STATUS__', getStatus);
-
-        connect();
-
-        this.on('close', done => {
-            manageStatus('offline');
+        node.on('close', done => {
+            closing = true;
             clearInterval(_cycleInterval);
-            clearTimeout(_reconnectTimeout);
-            _cycleInterval = null
-            _reconnectTimeout = null;
-            
-            that.removeListener('__DO_CYCLE__', doCycle);
-            that.removeListener('__UPDATE_CYCLE__', updateCycleEvent);
-            that.removeListener('__GET_STATUS__', getStatus);           
+            clearTimeout(_reconnectTimeout);     
 
-            disconnect(false).then(done);
+            disconnect(done);
         });
         
+        connect();
     }
-
     RED.nodes.registerType('s5 plc', S5Plc);
 
     // <Begin> --- S5 In
     function S5In(config) {
         RED.nodes.createNode(this, config);
         let statusVal;
-        let that = this
+        let node = this
 
         let s5plc = RED.nodes.getNode(config.plc);
 
         if (!s5plc) {
-            that.error(RED._("s5.error.missingconfig"));
+            node.error(RED._("s5.error.missingconfig"));
             return;
         }
 
@@ -386,8 +326,8 @@ module.exports = function (RED) {
                 topic: key
             };
             statusVal = status !== undefined ? status : data;
-            that.send(msg);
-            s5plc.emit('__GET_STATUS__');
+            node.send(msg);
+            updateStatus(s5plc.getStatus())
         }
         
         function onChanged(variable) {
@@ -408,12 +348,12 @@ module.exports = function (RED) {
             onData(data[config.variable]);
         }
 
-        function onS5Status(status) {
-            that.status(generateStatus(status, statusVal));
+        function updateStatus(status) {
+            node.status(generateStatus(status, statusVal));
         }
         
-        s5plc.on('__STATUS__', onS5Status);
-        s5plc.emit('__GET_STATUS__');
+        s5plc.on('__STATUS__', updateStatus);
+        updateStatus(s5plc.getStatus())
 
         if (config.diff) {
             switch (config.mode) {
@@ -447,7 +387,7 @@ module.exports = function (RED) {
             s5plc.removeListener('__ALL__', onData);
             s5plc.removeListener('__ALL_CHANGED__', onData);
             s5plc.removeListener('__CHANGED__', onChanged);
-            s5plc.removeListener('__STATUS__', onS5Status);
+            s5plc.removeListener('__STATUS__', updateStatus);
             s5plc.removeListener(config.variable, onData);
             done();
         });
@@ -459,7 +399,7 @@ module.exports = function (RED) {
 
     // <Begin> --- S5 Control
     function S5Control(config) {
-        let that = this;
+        let node = this;
         RED.nodes.createNode(this, config);
 
         let s5plc = RED.nodes.getNode(config.plc);
@@ -469,8 +409,8 @@ module.exports = function (RED) {
             return;
         }
 
-        function onS5Status(status) {
-            that.status(generateStatus(status));
+        function updateStatus(status) {
+            node.status(generateStatus(status));
         }
 
         function onMessage(msg, send, done) {
@@ -504,7 +444,7 @@ module.exports = function (RED) {
             }
         }
 
-        s5plc.on('__STATUS__', onS5Status);
+        s5plc.on('__STATUS__', updateStatus);
         s5plc.on('__UPDATE_CYCLE_RES__', onUpdateCycle);
 
         s5plc.emit('__GET_STATUS__');
@@ -512,7 +452,7 @@ module.exports = function (RED) {
         nrInputShim(this, onMessage);
 
         this.on('close', function (done) {
-            s5plc.removeListener('__STATUS__', onS5Status);
+            s5plc.removeListener('__STATUS__', updateStatus);
             s5plc.removeListener('__UPDATE_CYCLE_RES__', onUpdateCycle);
             done();
         });
