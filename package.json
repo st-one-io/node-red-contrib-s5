@@ -17,6 +17,14 @@
     "siemens",
     "plc"
   ],
+  "bugs": {
+    "url": "https://github.com/st-one-io/node-red-contrib-s5/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/st-one-io/node-red-contrib-s5.git"
+  },
+  "homepage": "https://github.com/st-one-io/node-red-contrib-s5#readme",
   "node-red": {
     "nodes": {
       "s5": "red/s5.js"
