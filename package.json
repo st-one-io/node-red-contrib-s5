@@ -9,7 +9,7 @@
   "author": "Fernando Amorim",
   "license": "ISC",
   "optionalDependencies": {
-    "@protocols/nodes5": "^1.0.8"
+    "@protocols/nodes5": "^1.0.9"
   },  
   "keywords": [
     "s5",
