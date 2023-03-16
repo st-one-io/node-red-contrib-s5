@@ -92,8 +92,8 @@
                 dataType = "X";
             }
 
-            // validate data type
-            if (!NODES5_DATATYPE.includes(dataType)) return 'ERR_PARSE_DATATYPE';
+			// validate data type
+			if (!["T", "C"].includes(match_area) && !NODES5_DATATYPE.includes(dataType)) return "ERR_PARSE_DATATYPE";
         }
 
         if (dataType === "X") {
