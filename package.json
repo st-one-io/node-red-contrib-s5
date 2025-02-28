@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-s5",
-  "version": "1.1.12-beta.1",
+  "version": "1.1.12-beta.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "license": "ISC",
   "optionalDependencies": {
     "@protocols/nodes5": "^1.0.18-beta.1"
-  },  
+  },
   "keywords": [
     "s5",
     "node-red",
@@ -29,5 +29,8 @@
     "nodes": {
       "s5": "red/s5.js"
     }
-  }
+  },
+  "bundledDependencies": [
+    "@protocols/nodes5"
+  ]
 }
